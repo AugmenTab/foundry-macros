@@ -1,17 +1,4 @@
 const file = "";
-const flareColors = {
-  "R": {name:"red", saturation:1, brightness:1, contrast:1, red:1.8, green:0, blue:0}, 
-  "O": {name:"orange", saturation:1, brightness:1, contrast:1, red:1.1, green:0.4, blue:0},
-  "Y": {name:"yellow", saturation:1, brightness:1, contrast:1, red:1.4, green:1.4, blue:0},
-  "G": {name:"green", saturation:1, brightness:1, contrast:1, red:0, green:1.2, blue:0},
-  "B": {name:"blue", saturation:1, brightness:1, contrast:1, red:1, green:1, blue:1},
-  "P": {name:"purple", saturation:1, brightness:1, contrast:1, red:0.6, green:0, blue:1.2},
-  "M": {name:"magenta", saturation:0.4, brightness:2.5, contrast:0.8, red:1, green:0, blue:1},
-  "W": {name:"white", saturation:0.2, brightness:2.5, contrast:0.4, red:1, green:1, blue:1},
-  "b": {name:"black", saturation:1, brightness:1, contrast:1, red:0, green:0, blue:0},
-  "g": {name:"gray", saturation:0, brightness:5, contrast:1, red:1, green:1, blue:1}
-};
-
 let params = [
   {
     filterType: "adjustment",
@@ -66,6 +53,18 @@ let params = [
 ];
 
 function getColorData(k) {
+  const flareColors = {
+    "R": {name:"red", saturation:1, brightness:1, contrast:1, red:1.8, green:0, blue:0}, 
+    "O": {name:"orange", saturation:1, brightness:1, contrast:1, red:1.1, green:0.4, blue:0},
+    "Y": {name:"yellow", saturation:1, brightness:1, contrast:1, red:1.4, green:1.4, blue:0},
+    "G": {name:"green", saturation:1, brightness:1, contrast:1, red:0, green:1.2, blue:0},
+    "B": {name:"blue", saturation:1, brightness:1, contrast:1, red:1, green:1, blue:1},
+    "P": {name:"purple", saturation:1, brightness:1, contrast:1, red:0.6, green:0, blue:1.2},
+    "M": {name:"magenta", saturation:0.4, brightness:2.5, contrast:0.8, red:1, green:0, blue:1},
+    "W": {name:"white", saturation:0.2, brightness:2.5, contrast:0.4, red:1, green:1, blue:1},
+    "b": {name:"black", saturation:1, brightness:1, contrast:1, red:0, green:0, blue:0},
+    "g": {name:"gray", saturation:0, brightness:5, contrast:1, red:1, green:1, blue:1}
+  };  
   return flareColors[k];
 };
 
@@ -142,7 +141,7 @@ new Dialog({
     let signaller = html.find("input[id='party']").val();
     const colors = html.find("input[id='field']").val().split("")
       .map(getColorData)
-      .filter(function(value, index, arr) { return value.name; });
+      .filter(function(value, _, _) { return typeof(value) != "undefined"; });
     if (signaller === "") {
       signaller = "An unknown party";
     };
