@@ -53,20 +53,21 @@ function buildChatMessage(n, colors) {
   return `${n} sent up ${names.length > 1 ? "flares" : "a flare"}: ${seq}.`;
 };
 
-async function createFlare(effectParams) {
+async function createFlare(effectParams, xPosition) {
   const tileParams = {
     img: "worlds/sundered-lands/effects/flare.webm",
     width: 512,
     height: 512,
     scale: 1,
-    x: canvas.dimensions.paddingX,
-    y: canvas.dimensions.paddingY,
+    x: xPosition,
+    y: canvas.scene._viewPosition.y - (512 / 2),
     z: 370,
     rotation: 0,
     hidden: false,
     locked: false
   };
   const tile = await Tile.create(tileParams);
+  TokenMagic.addFilters(tile, effectParams);
 };
 
 function buildEffect(colorEffect) {
@@ -98,6 +99,14 @@ function prepEffect(color) {
       }
     }
   }
+};
+
+function sleep(millis) {
+  const date = Date.now();
+  let currentDate = 0;
+  do {
+    currentDate = Date.now()
+  } while (currentDate - date < millis);
 };
 
 new Dialog({
@@ -175,7 +184,9 @@ new Dialog({
         content: buildChatMessage(signaller, colors)
       }, {});
       for (i = 0; i < colors.length; ++i) {
-        createFlare(buildEffect(prepEffect(colors[i])));
+        let x = (canvas.scene._viewPosition.x / colors.length) * (i + 1) - (512 / 2)
+        createFlare(buildEffect(prepEffect(colors[i])), x);
+        sleep(1000);
       };
     } else {
       ui.notifications.error("No valid flare colors entered.");
