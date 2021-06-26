@@ -70,6 +70,7 @@ async function createFlare(effectParams, xPosition) {
   const tile = await Tile.create(tileParams);
   // TokenMagic.addFilters(tile, effectParams);
   await AudioHelper.play({src: flareSound, volume: 0.8}, true);
+  return tile;
 };
 
 function buildEffect(colorEffect) {
@@ -111,11 +112,17 @@ function sleep(millis) {
   } while (currentDate - date < millis);
 };
 
+function deleteTile(tile) {
+  tile[0].delete();
+};
+
 async function sendFlares(colors) {
+  const time = 2000 + ((colors.length) * 375)
   for (i = 0; i < colors.length; ++i) {
-    let x = (canvas.scene._viewPosition.x / colors.length) * (i + 1) + (512 / 2)
-    await createFlare(buildEffect(prepEffect(colors[i])), x);
-    sleep(320);
+    let x = (canvas.scene._viewPosition.x / colors.length) * (i + 1) + (512 / 2);
+    tile = await createFlare(buildEffect(prepEffect(colors[i])), x);
+    await setTimeout(deleteTile, time, tile);
+    sleep(400);
   };
 };
 
