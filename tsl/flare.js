@@ -1,56 +1,32 @@
-const file = "";
-let params = [
-  {
-    filterType: "adjustment",
-    filterId: "flareColor",
-    saturation: 1,
-    brightness: 1,
-    contrast: 1,
-    gamma: 1,
-    red: 0,
-    green: 0,
-    blue: 0,
-    alpha: 1,
-    animated: {
-      alpha: { 
-        active: false, 
-        loopDuration: 2000, 
-        animType: "syncCosOscillation",
-        val1: 0.35,
-        val2: 0.75
-      }
-    }
-  },
-  {
-    filterType: "shadow",
-    filterId: "flareShadow",
-    rotation: 35,
-    blur: 2,
-    quality: 5,
-    distance: 20,
-    alpha: 0.7,
-    padding: 10,
-    shadowOnly: false,
-    color: 0x000000,
-    zOrder: 6000,
-    animated: {
-      blur: { 
-        active: true, 
-        loopDuration: 500, 
-        animType: "syncCosOscillation", 
-        val1: 2, 
-        val2: 4
-      },
-      rotation: {
-        active: true,
-        loopDuration: 100,
-        animType: "syncSinOscillation",
-        val1: 33,
-        val2: 37
-      }
+const shadow = {
+  filterType: "shadow",
+  filterId: "flareShadow",
+  rotation: 35,
+  blur: 2,
+  quality: 5,
+  distance: 20,
+  alpha: 0.7,
+  padding: 10,
+  shadowOnly: false,
+  color: 0x000000,
+  zOrder: 6000,
+  animated: {
+    blur: { 
+      active: true, 
+      loopDuration: 500, 
+      animType: "syncCosOscillation", 
+      val1: 2, 
+      val2: 4
+    },
+    rotation: {
+      active: true,
+      loopDuration: 100,
+      animType: "syncSinOscillation",
+      val1: 33,
+      val2: 37
     }
   }
-];
+};
 
 function getColorData(k) {
   const flareColors = {
@@ -69,12 +45,59 @@ function getColorData(k) {
 };
 
 function buildChatMessage(n, colors) {
-  names = [];
+  let names = [];
   for (i = 0; i < colors.length; i++) {
     names.push(colors[i].name);
   };
   const seq = `<b>${names.join(", ")}</b>`;
   return `${n} sent up ${names.length > 1 ? "flares" : "a flare"}: ${seq}.`;
+};
+
+async function createFlare(effectParams) {
+  const tileParams = {
+    img: "worlds/sundered-lands/effects/flare.webm",
+    width: 512,
+    height: 512,
+    scale: 1,
+    x: canvas.dimensions.paddingX,
+    y: canvas.dimensions.paddingY,
+    z: 370,
+    rotation: 0,
+    hidden: false,
+    locked: false
+  };
+  const tile = await Tile.create(tileParams);
+};
+
+function buildEffect(colorEffect) {
+  let effectParams = [];
+  effectParams.push(shadow);
+  effectParams.push(colorEffect);
+  return effectParams;
+}
+
+function prepEffect(color) {
+  return {
+    filterType: "adjustment",
+    filterId: "flareColor",
+    gamma: 1,
+    alpha: 1,
+    saturation: color.saturation,
+    brightness: color.brightness,
+    contrast: color.contrast,
+    red: color.red,
+    green: color.green,
+    blue: color.blue,
+    animated: {
+      alpha: { 
+        active: false, 
+        loopDuration: 2000, 
+        animType: "syncCosOscillation",
+        val1: 0.35,
+        val2: 0.75
+      }
+    }
+  }
 };
 
 new Dialog({
@@ -151,9 +174,9 @@ new Dialog({
         speaker: ChatMessage.getSpeaker(),
         content: buildChatMessage(signaller, colors)
       }, {});
-      // for (i = 0; i < colors.length; ++i) {
-        // TODO: Call function to trigger animations.
-      // };
+      for (i = 0; i < colors.length; ++i) {
+        createFlare(buildEffect(prepEffect(colors[i])));
+      };
     } else {
       ui.notifications.error("No valid flare colors entered.");
     };
