@@ -53,7 +53,7 @@ function buildChatMessage(n, colors) {
   return `${n} sent up ${names.length > 1 ? "flares" : "a flare"}: ${seq}.`;
 };
 
-async function createFlare(effectParams, xPosition) {
+async function createFlare(effectParams, xPosition, i) {
   const flareSound = "worlds/sundered-lands/sounds/effects/flare.flac";
   const tileParams = {
     img: "worlds/sundered-lands/effects/flare.webm",
@@ -67,9 +67,9 @@ async function createFlare(effectParams, xPosition) {
     hidden: false,
     locked: false
   };
-  const tile = await Tile.create(tileParams);
-  // TokenMagic.addFilters(tile, effectParams);
   await AudioHelper.play({src: flareSound, volume: 0.8}, true);
+  const tile = await Tile.create(tileParams);
+  await TokenMagic.addUpdateFilters(canvas.background.tiles[i], effectParams);
   return tile;
 };
 
@@ -120,7 +120,7 @@ async function sendFlares(colors) {
   const time = 2000 + ((colors.length) * 375)
   for (i = 0; i < colors.length; ++i) {
     let x = (canvas.scene._viewPosition.x / colors.length) * (i + 1) + (512 / 2);
-    tile = await createFlare(buildEffect(prepEffect(colors[i])), x);
+    tile = await createFlare(buildEffect(prepEffect(colors[i])), x, i);
     await setTimeout(deleteTile, time, tile);
     sleep(400);
   };
