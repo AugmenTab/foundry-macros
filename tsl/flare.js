@@ -1,26 +1,81 @@
+const file = "";
 const flareColors = {
-  "R": "red",
-  "O": "orange",
-  "Y": "yellow",
-  "G": "green",
-  "B": "blue",
-  "P": "purple",
-  "M": "magenta",
-  "W": "white",
-  "b": "black",
-  "g": "gray"
+  "R": {name:"red" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */}, 
+  "O": {name:"orange" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
+  "Y": {name:"yellow" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
+  "G": {name:"green" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
+  "B": {name:"blue" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
+  "P": {name:"purple" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
+  "M": {name:"magenta" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
+  "W": {name:"white" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
+  "b": {name:"black" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
+  "g": {name:"gray" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */}
 };
 
-function getColor(k) {
+let params = [
+  {
+    filterType: "adjustment",
+    filterId: "flareColor",
+    saturation: 1,
+    brightness: 1,
+    contrast: 1,
+    gamma: 1,
+    red: 0,
+    green: 0,
+    blue: 0,
+    alpha: 1,
+    animated: {
+      alpha: { 
+        active: false, 
+        loopDuration: 2000, 
+        animType: "syncCosOscillation",
+        val1: 0.35,
+        val2: 0.75
+      }
+    }
+  },
+  {
+    filterType: "shadow",
+    filterId: "flareShadow",
+    rotation: 35,
+    blur: 2,
+    quality: 5,
+    distance: 20,
+    alpha: 0.7,
+    padding: 10,
+    shadowOnly: false,
+    color: 0x000000,
+    zOrder: 6000,
+    animated: {
+      blur: { 
+        active: true, 
+        loopDuration: 500, 
+        animType: "syncCosOscillation", 
+        val1: 2, 
+        val2: 4
+      },
+      rotation: {
+        active: true,
+        loopDuration: 100,
+        animType: "syncSinOscillation",
+        val1: 33,
+        val2: 37
+      }
+    }
+  }
+];
+
+function getColorData(k) {
   return flareColors[k];
 };
 
-function buildChatMessage(name, colors) {
-  // for (i = 0; i < colors.length; i++) {
-  //   if (colors[i] === "")
-  // };
-  const seq = `<b>${colors.join(", ")}</b>`;
-  return `${name} sent up ${colors.length > 1 ? "flares" : "a flare"}: ${seq}.`;
+function buildChatMessage(n, colors) {
+  names = [];
+  for (i = 0; i < colors.length; i++) {
+    names.push(colors[i].name);
+  };
+  const seq = `<b>${names.join(", ")}</b>`;
+  return `${n} sent up ${names.length > 1 ? "flares" : "a flare"}: ${seq}.`;
 };
 
 new Dialog({
@@ -85,8 +140,9 @@ new Dialog({
   default:"yes",
   close: html => {
     let signaller = html.find("input[id='party']").val();
-    const colors = html.find("input[id='field']").val().split("").map(getColor)
-      .filter(function(value, index, arr) { return value; });
+    const colors = html.find("input[id='field']").val().split("")
+      .map(getColorData)
+      .filter(function(value, index, arr) { return value.name; });
     if (signaller === "") {
       signaller = "An unknown party";
     };
