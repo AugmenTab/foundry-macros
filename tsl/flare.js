@@ -54,6 +54,7 @@ function buildChatMessage(n, colors) {
 };
 
 async function createFlare(effectParams, xPosition) {
+  const flareSound = "worlds/sundered-lands/sounds/effects/flare.flac";
   const tileParams = {
     img: "worlds/sundered-lands/effects/flare.webm",
     width: 512,
@@ -67,7 +68,8 @@ async function createFlare(effectParams, xPosition) {
     locked: false
   };
   const tile = await Tile.create(tileParams);
-  TokenMagic.addFilters(tile, effectParams);
+  // TokenMagic.addFilters(tile, effectParams);
+  await AudioHelper.play({src: flareSound, volume: 0.8}, true);
 };
 
 function buildEffect(colorEffect) {
@@ -107,6 +109,14 @@ function sleep(millis) {
   do {
     currentDate = Date.now()
   } while (currentDate - date < millis);
+};
+
+async function sendFlares(colors) {
+  for (i = 0; i < colors.length; ++i) {
+    let x = (canvas.scene._viewPosition.x / colors.length) * (i + 1) + (512 / 2)
+    await createFlare(buildEffect(prepEffect(colors[i])), x);
+    sleep(320);
+  };
 };
 
 new Dialog({
@@ -183,11 +193,7 @@ new Dialog({
         speaker: ChatMessage.getSpeaker(),
         content: buildChatMessage(signaller, colors)
       }, {});
-      for (i = 0; i < colors.length; ++i) {
-        let x = (canvas.scene._viewPosition.x / colors.length) * (i + 1) - (512 / 2)
-        createFlare(buildEffect(prepEffect(colors[i])), x);
-        sleep(1000);
-      };
+      sendFlares(colors);
     } else {
       ui.notifications.error("No valid flare colors entered.");
     };
