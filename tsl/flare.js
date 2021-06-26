@@ -1,15 +1,15 @@
 const file = "";
 const flareColors = {
-  "R": {name:"red" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */}, 
-  "O": {name:"orange" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
-  "Y": {name:"yellow" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
-  "G": {name:"green" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
-  "B": {name:"blue" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
-  "P": {name:"purple" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
-  "M": {name:"magenta" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
-  "W": {name:"white" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
-  "b": {name:"black" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */},
-  "g": {name:"gray" /*, saturation:_, brightness:_, contrast:_, gamma:_, red:_, green:_, blue:_ */}
+  "R": {name:"red", saturation:1, brightness:1, contrast:1, red:1.8, green:0, blue:0}, 
+  "O": {name:"orange", saturation:1, brightness:1, contrast:1, red:1.1, green:0.4, blue:0},
+  "Y": {name:"yellow", saturation:1, brightness:1, contrast:1, red:1.4, green:1.4, blue:0},
+  "G": {name:"green", saturation:1, brightness:1, contrast:1, red:0, green:1.2, blue:0},
+  "B": {name:"blue", saturation:1, brightness:1, contrast:1, red:1, green:1, blue:1},
+  "P": {name:"purple", saturation:1, brightness:1, contrast:1, red:0.6, green:0, blue:1.2},
+  "M": {name:"magenta", saturation:0.4, brightness:2.5, contrast:0.8, red:1, green:0, blue:1},
+  "W": {name:"white", saturation:0.2, brightness:2.5, contrast:0.4, red:1, green:1, blue:1},
+  "b": {name:"black", saturation:1, brightness:1, contrast:1, red:0, green:0, blue:0},
+  "g": {name:"gray", saturation:0, brightness:5, contrast:1, red:1, green:1, blue:1}
 };
 
 let params = [
@@ -152,7 +152,7 @@ new Dialog({
         speaker: ChatMessage.getSpeaker(),
         content: buildChatMessage(signaller, colors)
       }, {});
-      // for (i = 0; i < result.length; ++i) {
+      // for (i = 0; i < colors.length; ++i) {
         // TODO: Call function to trigger animations.
       // };
     } else {
