@@ -65,11 +65,12 @@ async function createFlare(effectParams, xPosition, yPosition, i) {
     z: 370,
     rotation: 0,
     hidden: false,
-    locked: false
+    locked: false,
+    overhead: true
   };
   await AudioHelper.play({src: flareSound, volume: 0.8}, true);
   const tile = await Tile.create(tileParams);
-  const selected = await canvas.background.tiles[i];
+  const selected = await canvas.foreground.tiles[i];
   await TokenMagic.addUpdateFilters(selected, effectParams);
   return tile;
 };
@@ -78,8 +79,8 @@ async function createLight(color, xPosition, yPosition) {
   const light = await AmbientLight.create({
     x: xPosition + 260,
     y: yPosition + 260,
-    dim: 10,
-    bright: 15,
+    dim: 100,
+    bright: 200,
     angle: 360,
     tintColor: color.hex,
     tintAlpha: 1
@@ -137,9 +138,9 @@ async function sendFlares(colors) {
     pos = await canvas.scene._viewPosition;
     let x = (pos.x / colors.length) * (i + 1) + (512 / 2);
     let y = pos.y - (512 / 2);
-    const tile = await createFlare(buildEffect(prepEffect(colors[i])), x, y, i);
     let light = [];
     light.push(await createLight(colors[i], x, y));
+    const tile = await createFlare(buildEffect(prepEffect(colors[i])), x, y, i);
     await setTimeout(deleteFlareAndLight, time, tile, light);
     sleep(400);
   };
