@@ -75,12 +75,12 @@ async function createFlare(effectParams, xPosition, yPosition, i) {
   return tile;
 };
 
-async function createLight(color, xPosition, yPosition) {
+async function createLight(color, xPosition, yPosition, tileSize) {
   const light = await AmbientLight.create({
     x: xPosition + 260,
     y: yPosition + 260,
-    dim: 100,
-    bright: 200,
+    dim: tileSize,
+    bright: tileSize * 2,
     angle: 360,
     tintColor: color.hex,
     tintAlpha: 0.25,
@@ -142,97 +142,103 @@ async function deleteFlareAndLight(tile, light) {
 
 async function sendFlares(colors) {
   const time = 2400 + ((colors.length) * 325);
-  const scene = await canvas.scene;
+  const gameCanvas = await canvas;
+  const pos = gameCanvas.scene._viewPosition;
+  const tileSize = gameCanvas.grid.grid.options.dimensions.distance;
   for (i = 0; i < colors.length; ++i) {
-    let x = (scene._viewPosition.x / colors.length) * (i + 1) + (512 / 2);
-    let y = scene._viewPosition.y - (512 / 2);
+    let x = (pos.x / colors.length) * (i + 1) + (512 / 2);
+    let y = pos.y - (512 / 2);
     const tile = await createFlare(buildEffect(prepEffect(colors[i])), x, y, i);
     let light = [];
-    if (scene.data.darkness != 0) {
-      light.push(await createLight(colors[i], x, y));
+    if (gameCanvas.scene.data.darkness != 0) {
+      light.push(await createLight(colors[i], x, y, tileSize));
     }
-    await setTimeout(deleteFlareAndLight, time, tile, light);
+    setTimeout(deleteFlareAndLight, time, tile, light);
     sleep(400);
   };
 };
 
-new Dialog({
-  title:'Flare Sequence',
-  content:`
-    <form>
-      <div class="form-group">
-        <table style="text-align:center">
-          <thead>
-            <tr>
-              <th>Red</th>
-              <th>Orange</th>
-              <th>Yellow</th>
-              <th>Green</th>
-              <th>Blue</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>R</td>
-              <td>O</td>
-              <td>Y</td>
-              <td>G</td>
-              <td>B</td>
-            </tr>
-          </tbody>
-          <thead>
-            <tr>
-              <th>Purple</th>
-              <th>Magenta</th>
-              <th>White</th>
-              <th>Black</th>
-              <th>Gray</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>P</td>
-              <td>M</td>
-              <td>W</td>
-              <td>b</td>
-              <td>g</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="form-group">
-        <label>Enter Sequence:</label>
-        <input id="field" type="text"></input>
-      </div>
-      <div class="form-group">
-        <label>Sending Party:</label>
-        <input id="party" type="text"></input>
-      </div>
-    </form>`,
-  buttons:{
-    yes: {
-      icon: "<i class='fas fa-check'></i>",
-      label: "Signal"
+async function createDialog() {
+  return new Dialog({
+    title:'Flare Sequence',
+    content:`
+      <form>
+        <div class="form-group">
+          <table style="text-align:center">
+            <thead>
+              <tr>
+                <th>Red</th>
+                <th>Orange</th>
+                <th>Yellow</th>
+                <th>Green</th>
+                <th>Blue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>R</td>
+                <td>O</td>
+                <td>Y</td>
+                <td>G</td>
+                <td>B</td>
+              </tr>
+            </tbody>
+            <thead>
+              <tr>
+                <th>Purple</th>
+                <th>Magenta</th>
+                <th>White</th>
+                <th>Black</th>
+                <th>Gray</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>P</td>
+                <td>M</td>
+                <td>W</td>
+                <td>b</td>
+                <td>g</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="form-group">
+          <label>Enter Sequence:</label>
+          <input id="field" type="text"></input>
+        </div>
+        <div class="form-group">
+          <label>Sending Party:</label>
+          <input id="party" type="text"></input>
+        </div>
+      </form>`,
+    buttons:{
+      yes: {
+        icon: "<i class='fas fa-check'></i>",
+        label: "Signal"
+      }
+    },
+    default:"yes",
+    close: html => {
+      let signaller = html.find("input[id='party']").val();
+      const colors = html.find("input[id='field']").val().split("")
+        .map(getColorData)
+        .filter(function(value, _, _) { return typeof(value) != "undefined"; });
+      if (signaller === "") {
+        signaller = "An unknown party";
+      };
+      if (colors.length > 0) {
+        ChatMessage.create({
+          user: game.user.id,
+          speaker: ChatMessage.getSpeaker(),
+          content: buildChatMessage(signaller, colors)
+        }, {});
+        sendFlares(colors);
+      } else {
+        ui.notifications.error("No valid flare colors entered.");
+      };
     }
-  },
-  default:"yes",
-  close: html => {
-    let signaller = html.find("input[id='party']").val();
-    const colors = html.find("input[id='field']").val().split("")
-      .map(getColorData)
-      .filter(function(value, _, _) { return typeof(value) != "undefined"; });
-    if (signaller === "") {
-      signaller = "An unknown party";
-    };
-    if (colors.length > 0) {
-      ChatMessage.create({
-        user: game.user.id,
-        speaker: ChatMessage.getSpeaker(),
-        content: buildChatMessage(signaller, colors)
-      }, {});
-      sendFlares(colors);
-    } else {
-      ui.notifications.error("No valid flare colors entered.");
-    };
-  }
-}).render(true);
+  }).render(true);
+};
+
+await createDialog();
