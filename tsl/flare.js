@@ -83,7 +83,7 @@ async function createLight(color, xPosition, yPosition) {
     bright: 200,
     angle: 360,
     tintColor: color.hex,
-    tintAlpha: 1
+    tintAlpha: 0.25
   });
   return light[0].data._id;
 }
