@@ -129,18 +129,22 @@ function sleep(millis) {
 
 async function deleteFlareAndLight(tile, light) {
   await tile[0].delete();
-  await canvas.lighting.deleteMany(light);
+  if (light.length > 0) {
+    await canvas.lighting.deleteMany(light);
+  }
 };
 
 async function sendFlares(colors) {
   const time = 2400 + ((colors.length) * 325);
+  const scene = await canvas.scene;
   for (i = 0; i < colors.length; ++i) {
-    pos = await canvas.scene._viewPosition;
-    let x = (pos.x / colors.length) * (i + 1) + (512 / 2);
-    let y = pos.y - (512 / 2);
-    let light = [];
-    light.push(await createLight(colors[i], x, y));
+    let x = (scene._viewPosition.x / colors.length) * (i + 1) + (512 / 2);
+    let y = scene._viewPosition.y - (512 / 2);
     const tile = await createFlare(buildEffect(prepEffect(colors[i])), x, y, i);
+    let light = [];
+    if (scene.data.darkness != 0) {
+      light.push(await createLight(colors[i], x, y));
+    }
     await setTimeout(deleteFlareAndLight, time, tile, light);
     sleep(400);
   };
