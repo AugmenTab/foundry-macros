@@ -83,7 +83,13 @@ async function createLight(color, xPosition, yPosition) {
     bright: 200,
     angle: 360,
     tintColor: color.hex,
-    tintAlpha: 0.25
+    tintAlpha: 0.25,
+    t: "g",
+    lightAnimation: {
+      speed: 5,
+      intensity: 5,
+      type: "torch"
+    }
   });
   return light[0].data._id;
 }
