@@ -12,14 +12,14 @@ const shadow = {
   zOrder: 6000,
   animated: {
     blur: { 
-      active: true, 
+      active: false, 
       loopDuration: 500, 
       animType: "syncCosOscillation", 
       val1: 2, 
       val2: 4
     },
     rotation: {
-      active: true,
+      active: false,
       loopDuration: 100,
       animType: "syncSinOscillation",
       val1: 33,
@@ -30,16 +30,16 @@ const shadow = {
 
 function getColorData(k) {
   const flareColors = {
-    "R": {name:"red", saturation:1, brightness:1, contrast:1, red:1.8, green:0, blue:0}, 
-    "O": {name:"orange", saturation:1, brightness:1, contrast:1, red:1.1, green:0.4, blue:0},
-    "Y": {name:"yellow", saturation:1, brightness:1, contrast:1, red:1.4, green:1.4, blue:0},
-    "G": {name:"green", saturation:1, brightness:1, contrast:1, red:0, green:1.2, blue:0},
-    "B": {name:"blue", saturation:1, brightness:1, contrast:1, red:1, green:1, blue:1},
-    "P": {name:"purple", saturation:1, brightness:1, contrast:1, red:0.6, green:0, blue:1.2},
-    "M": {name:"magenta", saturation:0.4, brightness:2.5, contrast:0.8, red:1, green:0, blue:1},
-    "W": {name:"white", saturation:0.2, brightness:2.5, contrast:0.4, red:1, green:1, blue:1},
-    "b": {name:"black", saturation:1, brightness:1, contrast:1, red:0, green:0, blue:0},
-    "g": {name:"gray", saturation:0, brightness:5, contrast:1, red:1, green:1, blue:1}
+    "R": {name:"red", saturation:1, brightness:1, contrast:1, red:1.8, green:0, blue:0, hex:"#ff0000"}, 
+    "O": {name:"orange", saturation:1, brightness:1, contrast:1, red:1.1, green:0.4, blue:0, hex:"#ff6600"},
+    "Y": {name:"yellow", saturation:1, brightness:1, contrast:1, red:1.4, green:1.4, blue:0, hex:"#ffff00"},
+    "G": {name:"green", saturation:1, brightness:1, contrast:1, red:0, green:1.2, blue:0, hex:"#00ff00"},
+    "B": {name:"blue", saturation:1, brightness:1, contrast:1, red:1, green:1, blue:1, hex:"#0000ff"},
+    "P": {name:"purple", saturation:1, brightness:1, contrast:1, red:0.6, green:0, blue:1.2, hex:"#80080"},
+    "M": {name:"magenta", saturation:0.4, brightness:2.5, contrast:0.8, red:1, green:0, blue:1, hex:"#ff00ff"},
+    "W": {name:"white", saturation:0.2, brightness:2.5, contrast:0.4, red:1, green:1, blue:1, hex:"#ffffff"},
+    "b": {name:"black", saturation:1, brightness:1, contrast:1, red:0, green:0, blue:0, hex:"#191919"},
+    "g": {name:"gray", saturation:0, brightness:5, contrast:1, red:1, green:1, blue:1, hex:"#333333"},
   };  
   return flareColors[k];
 };
@@ -53,7 +53,7 @@ function buildChatMessage(n, colors) {
   return `${n} sent up ${names.length > 1 ? "flares" : "a flare"}: ${seq}.`;
 };
 
-async function createFlare(effectParams, xPosition, i) {
+async function createFlare(effectParams, xPosition, yPosition, i) {
   const flareSound = "worlds/sundered-lands/sounds/effects/flare.flac";
   const tileParams = {
     img: "worlds/sundered-lands/effects/flare.webm",
@@ -61,7 +61,7 @@ async function createFlare(effectParams, xPosition, i) {
     height: 512,
     scale: 1,
     x: xPosition,
-    y: canvas.scene._viewPosition.y - (512 / 2),
+    y: yPosition,
     z: 370,
     rotation: 0,
     hidden: false,
@@ -69,9 +69,23 @@ async function createFlare(effectParams, xPosition, i) {
   };
   await AudioHelper.play({src: flareSound, volume: 0.8}, true);
   const tile = await Tile.create(tileParams);
-  await TokenMagic.addUpdateFilters(canvas.background.tiles[i], effectParams);
+  const selected = await canvas.background.tiles[i];
+  await TokenMagic.addUpdateFilters(selected, effectParams);
   return tile;
 };
+
+async function createLight(color, xPosition, yPosition) {
+  const light = await AmbientLight.create({
+    x: xPosition + 260,
+    y: yPosition + 260,
+    dim: 10,
+    bright: 15,
+    angle: 360,
+    tintColor: color.hex,
+    tintAlpha: 1
+  });
+  return light[0].data._id;
+}
 
 function buildEffect(colorEffect) {
   let effectParams = [];
@@ -112,16 +126,21 @@ function sleep(millis) {
   } while (currentDate - date < millis);
 };
 
-function deleteTile(tile) {
-  tile[0].delete();
+async function deleteFlareAndLight(tile, light) {
+  await tile[0].delete();
+  await canvas.lighting.deleteMany(light);
 };
 
 async function sendFlares(colors) {
-  const time = 2000 + ((colors.length) * 375)
+  const time = 2400 + ((colors.length) * 325);
   for (i = 0; i < colors.length; ++i) {
-    let x = (canvas.scene._viewPosition.x / colors.length) * (i + 1) + (512 / 2);
-    tile = await createFlare(buildEffect(prepEffect(colors[i])), x, i);
-    await setTimeout(deleteTile, time, tile);
+    pos = await canvas.scene._viewPosition;
+    let x = (pos.x / colors.length) * (i + 1) + (512 / 2);
+    let y = pos.y - (512 / 2);
+    const tile = await createFlare(buildEffect(prepEffect(colors[i])), x, y, i);
+    let light = [];
+    light.push(await createLight(colors[i], x, y));
+    await setTimeout(deleteFlareAndLight, time, tile, light);
     sleep(400);
   };
 };
