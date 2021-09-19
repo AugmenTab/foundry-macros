@@ -6,6 +6,39 @@ async function getSalvageResults(rollTable) {
   return drawResult.results[0].data.text;
 }
 
+// Roll salvage vehicle body.
+async function getSalvageBody() {
+  const classification = "Salvage Vehicle Classification";
+  const body = await getSalvageResults(classification);
+
+  const steamhorse = ["Motorsled", "Putter Pony", "Steamhorse", "Quad"];
+  const auto = [
+    "Barchetta", "Buggy", "Coupé", "Open-Wheel", "Phaeton", "Pickup",
+    "Roadster", "Sedan", "Van", "Wagon"
+  ];
+  const heavy = ["Bus", "Day Cab Rig", "Sleeper Cab Rig"];
+  const steamhorseAr = ["Libellule", "Gyrocopter"];
+  const autoAr = ["Monoplane", "Biplane"];
+  const heavyAr = ["Aerostat", "Megaplane"];
+
+  let group = "";
+  if (steamhorse.includes(body)) {
+    group = "Ground Steamhorse";
+  } else if (auto.includes(body)) {
+    group = "Ground Auto";
+  } else if (heavy.includes(body)) {
+    group = "Ground Heavy";
+  } else if (steamhorseAr.includes(body)) {
+    group = "Aerial Steamhorse";
+  } else if (autoAr.includes(body)) {
+    group = "Aerial Auto";
+  } else if (heavyAr.includes(body)) {
+    group = "Aerial Heavy";
+  }
+
+  return `${body} (${group})`;
+}
+
 // Roll salvage vehicle parts table.
 async function getSalvageParts() {
   const parts = ["Engine", "Transmission", "Suspension", "Chassis"];
@@ -41,10 +74,9 @@ async function getSalvageParts() {
 
 // Construct HTML message table for chat message.
 async function buildMessageTable() {
-  const classification = "Salvage Vehicle Classification";
   let messageTable =
     `<b><h2>Salvage Vehicle</h2></b>
-    <p><b>Vehicle:</b> ${await getSalvageResults(classification)}</p>
+    <p><b>Vehicle:</b> ${await getSalvageBody()}</p>
     ${await getSalvageParts()}`;
   return messageTable;
 }
