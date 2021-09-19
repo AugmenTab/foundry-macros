@@ -18,27 +18,33 @@ async function getEsotericsResults() {
 
 // Roll weather event.
 async function getWeatherResults(terrain) {
-  return "test";
+  return "TODO";
 };
 
 // Roll terrain event.
 async function getTerrainResults() {
-  return "test";
+  const table = game.tables.contents.find(t => t.name === "Terrain Events");
+  const draw = await table.draw({ displayChat: false, async: true });
+  return draw.results[0].text;
 };
 
 // Roll encounter event.
 async function getEncounterEvent() {
-  return "test";
+  return "TODO";
 };
 
 // Construct HTML message table for chat message.
+const esoterics = await getEsotericsResults();
+const terrain = await getTerrainResults();
+const weather = await getWeatherResults(terrain);
+const encounter = await getEncounterEvent();
 async function buildMessageTable() {
-  const messageTable =  
-    "<b><h2>New Day or Hex</h2></b>" + 
-    "<p><b>Esoterics Effects: </b>" + await getEsotericsResults() +
-    "<hr><p><b>Terrain Event: </b>" + await getTerrainResults() +
-    "<hr><p><b>Weather Event: </b>" + await getWeatherResults() +
-    "<hr><p><b>Encounter: </b>" + await getEncounterEvent();
+  const messageTable = `
+    <b><h2>New Day or Hex</h2></b>
+    <p><b>Esoterics Effects:</b> ${esoterics}</p>
+    <hr><p><b>Terrain Event:</b> ${terrain}</p>
+    <hr><p><b>Weather Event:</b> ${weather}</p>
+    <hr><p><b>Encounter:</b> ${encounter}</p>`;
   return messageTable;
 };
 
