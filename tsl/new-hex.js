@@ -18,7 +18,8 @@ async function getEsotericsResults() {
 
 // Get a JournalEntry.
 function getJournal(name) {
-  return game.journal.contents.find(j => j.name === name);
+  const journal = game.journal.contents.find(j => j.name === name);
+  return `@JournalEntry[${journal.id}]{${journal.name}}`;
 }
 
 // Roll weather event.
@@ -26,19 +27,16 @@ async function getWeatherResults(terrain) {
   const table = game.tables.contents.find(t => t.name === "Weather Events");
   const draw = await table.draw({ displayChat: false, async: true });
   const result = draw.results[0].data.text;
-  if (result === "No abnormal weather.") {
+  if (terrain.includes("Black Sand") && result.includes("Flaywind Storm")) {
+    return getJournal("Necrotic Flaywind");
+  } else if (terrain.includes("Loma")) {
+    return getJournal("Fog");
+  } else if (terrain.includes("Razor Sand") && result.includes("Sandstorm")) {
+    return getJournal("Flaywind Storm");
+  } else if (result === "No abnormal weather.") {
     return result;
   } else {
-    let title = result;
-    if (terrain.includes("Black Sand") && result.includes("Flaywind Storm")) {
-      title = "Necrotic Flaywind";
-    } else if (terrain.includes("Loma")) {
-      title = "Fog";
-    } else if (terrain.includes("Razor Sand") && result.includes("Sandstorm")) {
-      title = "Flaywind Storm"
-    }
-    const journal = getJournal(title);
-    return `@JournalEntry[${journal.id}]{${journal.name}}`;
+    return getJournal(result);
   }
 };
 
@@ -64,7 +62,7 @@ async function getEncounterEvent() {
 const esoterics = await getEsotericsResults();
 const terrain = await getTerrainResults();
 const weather = await getWeatherResults(terrain);
-const encounter = "TODO"; //await getEncounterEvent();
+const encounter = await getEncounterEvent();
 async function buildMessageTable() {
   const messageTable = `
     <b><h2>New Day or Hex</h2></b>
