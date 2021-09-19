@@ -46,13 +46,11 @@ async function getWeatherResults(terrain) {
 async function getTerrainResults() {
   const table = game.tables.contents.find(t => t.name === "Terrain Events");
   const draw = await table.draw({ displayChat: false, async: true });
-  const result = draw.results[0].text;
-  if (result) {
+  const result = draw.results[0].data.text;
+  if (result === "No unusual terrain.") {
     return result;
   } else {
-    const title = draw.results[0].data.text;
-    const journal = game.journal.contents.find(j => j.name === title);
-    console.log(journal);
+    const journal = game.journal.contents.find(j => j.name === result);
     return `@JournalEntry[${journal.id}]{${journal.name}}`;
   }
 };
