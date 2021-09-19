@@ -16,18 +16,30 @@ async function getEsotericsResults() {
   return text;
 };
 
+// Get a JournalEntry.
+function getJournal(name) {
+  return game.journal.contents.find(j => j.name === name);
+}
+
 // Roll weather event.
 async function getWeatherResults(terrain) {
   const table = game.tables.contents.find(t => t.name === "Weather Events");
   const draw = await table.draw({ displayChat: false, async: true });
-  const result = draw.results[0].text;
-  // console.log(draw.results[0]);
-  return result;
-  // if (terrain.includes("Black Sand") && result.includes("Flaywind Storm")) {
-  //   return "@JournalEntry[e8x3hdXbx8NG8AJ7]{Necrotic Flaywind}";
-  // } else {
-  //   return result;
-  // }
+  const result = draw.results[0].data.text;
+  if (result === "No abnormal weather.") {
+    return result;
+  } else {
+    let title = result;
+    if (terrain.includes("Black Sand") && result.includes("Flaywind Storm")) {
+      title = "Necrotic Flaywind";
+    } else if (terrain.includes("Loma")) {
+      title = "Fog";
+    } else if (terrain.includes("Razor Sand") && result.includes("Sandstorm")) {
+      title = "Flaywind Storm"
+    }
+    const journal = getJournal(title);
+    return `@JournalEntry[${journal.id}]{${journal.name}}`;
+  }
 };
 
 // Roll terrain event.
