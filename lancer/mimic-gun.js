@@ -4,7 +4,7 @@ async function getRange() {
   const text =
   `<i class="cci cci-range i--m i--dark"></i> ${roll.total}` +
   `&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;::&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;` +
-  `${Math.floor(roll.total / 2) + 1} ` +
+  `${Math.ceil(roll.total / 2) + 1} ` +
   `<i class="cci cci-kinetic i--m damage--kinetic"></i>`;
   return text;
 }
