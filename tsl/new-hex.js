@@ -58,18 +58,29 @@ async function getEncounterEvent() {
   return "TODO";
 };
 
+// Roll reproducibility for events.
+async function getEventReproduction() {
+  const table = game.tables.contents.find(t => t.name === "Event Reproducibility");
+  const draw = await table.draw({ displayChat: false, async: true });
+  const result = draw.results[0].data.text;
+  const journal = game.journal.contents.find(d => d.name === "Reproducibility");
+  return `${result} :: @JournalEntry[${journal.id}]{${journal.name}}`;
+}
+
 // Construct HTML message table for chat message.
 const esoterics = await getEsotericsResults();
 const terrain = await getTerrainResults();
 const weather = await getWeatherResults(terrain);
 const encounter = await getEncounterEvent();
+const reproduction = await getEventReproduction();
 async function buildMessageTable() {
   const messageTable = `
     <b><h2>New Day or Hex</h2></b>
     <p><b>Esoterics Effects:</b> ${esoterics}</p>
     <hr><p><b>Terrain Event:</b> ${terrain}</p>
     <hr><p><b>Weather Event:</b> ${weather}</p>
-    <hr><p><b>Encounter:</b> ${encounter}</p>`;
+    <hr><p><b>Encounter:</b> ${encounter}</p>
+    <hr><p><b>Reproduction:</b> ${reproduction}</p>`;
   return messageTable;
 };
 
