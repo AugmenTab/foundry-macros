@@ -73,10 +73,12 @@ async function getSalvageParts() {
 }
 
 // Construct HTML message table for chat message.
+const hpRoll = await new Roll("d100").roll({async: true});
 async function buildMessageTable() {
   let messageTable =
     `<b><h2>Salvage Vehicle</h2></b>
     <p><b>Vehicle:</b> ${await getSalvageBody()}</p>
+    <p><b>Hit Points:</b> ${hpRoll.total}%</p>
     ${await getSalvageParts()}`;
   return messageTable;
 }
