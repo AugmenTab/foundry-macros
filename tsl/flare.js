@@ -205,11 +205,11 @@ async function createDialog() {
         </div>
         <div class="form-group">
           <label>Enter Sequence:</label>
-          <input id="field" type="text"></input>
+          <input id="field" type="text"/>
         </div>
         <div class="form-group">
           <label>Sending Party:</label>
-          <input id="party" type="text"></input>
+          <input id="party" type="text"/>
         </div>
       </form>`,
     buttons:{

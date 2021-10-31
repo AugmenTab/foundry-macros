@@ -13,7 +13,7 @@ new Dialog({
     <form>
       <div class="form-group">
         <label>Select Targets (Max ${tableSize}):</label>
-        <input type='number' name='inputField'></input>
+        <input type='number' name='inputField'/>
       </div>
     </form>`,
   buttons:{
