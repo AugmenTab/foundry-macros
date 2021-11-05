@@ -6,9 +6,8 @@ function areAnyInvalidInputs(html) {
   }).some(isNaN);
 }
 
-// TODO Remove Math.floor from all final cost calcs to include sp and cp values.
 function buildChatMessage(data, speaker) {
-  
+  console.log(data);
 }
 
 function decodeBodyData(html) {
@@ -38,7 +37,7 @@ function decodeBodyData(html) {
   } else if (hp > 100) {
     hp = 100;
   }
-  return hp === 0 ? 0 : Math.floor(hp * 0.01 * bodyStyles[style]);
+  return hp === 0 ? 0 : hp * 0.01 * bodyStyles[style];
 }
 
 function decodeChassisData(html) {
@@ -92,9 +91,7 @@ function decodeEngineData(html) {
   }
 
   const hoCost = ho > 10 ? (6000 * 2**(ho - 10)) : cost[ho - 1];
-  return integrity === 0 ? 0 : (
-    Math.floor(hoCost * type[typeSelection] * (integrity * 0.1))
-  );
+  return integrity === 0 ? 0 : (hoCost * type[typeSelection] * (integrity * 0.1));
 }
 
 function decodeSuspensionData(html) {
@@ -120,7 +117,7 @@ function decodeSuspensionData(html) {
   }
 
   const reCost = getReCost(re);
-  return (integrity === 0  || re == 0) ? 0 : Math.floor(
+  return (integrity === 0  || re == 0) ? 0 : (
     reCost * type[typeSelection] * dependency[dependencySelection] * (integrity * 0.1)
   );
 }
@@ -175,7 +172,7 @@ function decodeTransmissionData(html) {
   , "spectrum": (cost[po - 1] + cost[fluid - 1]) + ((10**fluid) * 3)
   , "torqueConverter": (cost[po - 1] + cost[fluid - 1]) * Math.abs(po - fluid)
   };
-  return integrity === 0 ? 0 : Math.floor(type[typeSelection] * (integrity * 0.1));
+  return integrity === 0 ? 0 : (type[typeSelection] * (integrity * 0.1));
 }
 
 function getDataFromHtml(html) {
