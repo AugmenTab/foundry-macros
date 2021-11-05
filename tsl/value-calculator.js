@@ -69,6 +69,53 @@ function decodeEngineData(html) {
   );
 }
 
+function decodeSuspensionData(html) {
+  const cost = [10, 20, 30, 50, 80, 130, 210, 340, 550, 890];
+  const dependency = { "dependent": 1, "mixed": 1.5, "independent": 2 };
+  const type = {
+    "mechanical": 1
+  , "hydraulic": 1.2
+  , "pneumatic": 1.5
+  , "esoteric": 2
+  };
+
+  const typeSelection = html.find("select[name='suspensionType']").val();
+  const dependencySelection = html.find("select[name='suspensionDependency']").val();
+  let re = parseInt(html.find("input[name='re']").val());
+  let integrity = parseInt(html.find("input[name='suspensionInteg']").val());
+
+  if (re < 0) re = 0;
+  if (integrity < 0) {
+    integrity = 0;
+  } else if (integrity > 10) {
+    integrity = 10;
+  }
+
+  const reCost = getReCost(re);
+  console.log(reCost);
+  return integrity === 0 ? 0 : Math.floor(
+    reCost * type[typeSelection] * dependency[dependencySelection] * (integrity * 0.1)
+  );
+}
+
+function getReCost(re) {
+  let num1 = 10;
+  let num2 = 20;
+  if (re === 1) {
+    return num1;
+  } else if (re === 2) {
+    return num2;
+  } else {
+    re -= 2;
+    for (let i = 0; i < re; i++) {
+      let sum = num1 + num2;
+      num1 = num2;
+      num2 = sum;
+    }
+  }
+  return num2;
+}
+
 function decodeTransmissionData(html) {
   const typeSelection = html.find("select[name='transmissionType']").val();
   let po = parseInt(html.find("input[name='po']").val());
@@ -112,7 +159,7 @@ function getDataFromHtml(html) {
       body: decodeBodyData(html)
     , engine: decodeEngineData(html)
     , transmission: decodeTransmissionData(html)
-    , suspension: 0 // decodeSuspensionData(html)
+    , suspension: decodeSuspensionData(html)
     , chassis: 0 // decodeChassisData(html)
     };
   }
