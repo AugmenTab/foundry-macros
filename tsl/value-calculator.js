@@ -7,7 +7,7 @@ function areAnyInvalidInputs(html) {
 }
 
 function buildChatMessage(data, speaker) {
-  console.log(data.engine);
+  console.log(data.transmission);
 }
 
 function decodeBodyData(html) {
@@ -69,6 +69,41 @@ function decodeEngineData(html) {
   );
 }
 
+function decodeTransmissionData(html) {
+  const typeSelection = html.find("select[name='transmissionType']").val();
+  let po = parseInt(html.find("input[name='po']").val());
+  let fluid = parseInt(html.find("input[name='fluid']").val());
+  let integrity = parseInt(html.find("input[name='transmissionInteg']").val());
+
+  if (po < 0) {
+    po = 1;
+  } else if (po > 10) {
+    po = 10;
+  }
+
+  if (fluid < 0) {
+    fluid = 1;
+  } else if (fluid > 10) {
+    fluid = 10;
+  }
+
+  if (integrity < 0) {
+    integrity = 0;
+  } else if (integrity > 10) {
+    integrity = 10;
+  }
+
+  const cost = [300, 250, 200, 150, 100, 100, 150, 200, 250, 300];
+  const type = {
+    "manual": cost[po - 1] * 1
+  , "sequential": cost[po - 1] * 1.5
+  , "horlogian": cost[po - 1] * 2
+  , "spectrum": (cost[po - 1] + cost[fluid - 1]) + ((10**fluid) * 3)
+  , "torqueConverter": (cost[po - 1] + cost[fluid - 1]) * Math.abs(po - fluid)
+  };
+  return integrity === 0 ? 0 : Math.floor(type[typeSelection] * (integrity * 0.1));
+}
+
 function getDataFromHtml(html) {
   if (areAnyInvalidInputs(html)) {
     return { invalid: true };
@@ -76,7 +111,7 @@ function getDataFromHtml(html) {
     return {
       body: decodeBodyData(html)
     , engine: decodeEngineData(html)
-    , transmission: 0 // decodeTransmissionData(html)
+    , transmission: decodeTransmissionData(html)
     , suspension: 0 // decodeSuspensionData(html)
     , chassis: 0 // decodeChassisData(html)
     };
@@ -146,7 +181,7 @@ function getDialogContent() {
     <div class="form-group">
       <label>Transmission Type</label>
       <select name="transmissionType">
-        <option value="steam">Manual</option>
+        <option value="manual">Manual</option>
         <option value="sequential">Sequential</option>
         <option value="horlogian">Horlogian</option>
         <option value="spectrum">Spectrum</option>
