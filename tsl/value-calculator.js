@@ -31,11 +31,36 @@ function buildChatMessage(data) {
   return `
   <h2>Vehicle Evaluation</h2>
   <p><b>Total Resale:</b>&nbsp;${pathfinderMoneyed.total}</p>
-  <p><b>Body:</b>&nbsp;${pathfinderMoneyed.body}</p>
-  <p><b>Engine:</b>&nbsp;${pathfinderMoneyed.eng}</p>
-  <p><b>Transmission:</b>&nbsp;${pathfinderMoneyed.trans}</p>
-  <p><b>Suspension:</b>&nbsp;${pathfinderMoneyed.susp}</p>
-  <p><b>Chassis:</b>&nbsp;${pathfinderMoneyed.chass}</p>
+  <table style="text-align:center">
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Value</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Body</td>
+        <td>${pathfinderMoneyed.body}</td>
+      </tr>
+      <tr>
+        <td>Engine</td>
+        <td>${pathfinderMoneyed.eng}</td>
+      </tr>
+      <tr>
+        <td>Transmission</td>
+        <td>${pathfinderMoneyed.trans}</td>
+      </tr>
+      <tr>
+        <td>Suspension</td>
+        <td>${pathfinderMoneyed.susp}</td>
+      </tr>
+      <tr>
+        <td>Chassis</td>
+        <td>${pathfinderMoneyed.chass}</td>
+      </tr>
+    </tbody>
+  </table>
   `;
 }
 
