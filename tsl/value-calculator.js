@@ -6,8 +6,37 @@ function areAnyInvalidInputs(html) {
   }).some(isNaN);
 }
 
-function buildChatMessage(data, speaker) {
-  console.log(data);
+function getGoldSilverCopper(num) {
+  if (num === 0 || isNaN(num)) return "0 gp";
+
+  const gold = Math.floor(num);
+  const silver = Math.floor((num - gold) * 10);
+  const copper = Math.floor((((num - gold) * 10) - silver) * 10);
+  return `${gold} gp ${silver} sp ${copper} cp`;
+}
+
+function buildChatMessage(data) {
+  const vehicle = (
+    data.body + data.engine + data.transmission + data.suspension + data.chassis
+  );
+  const pathfinderMoneyed = {
+    total: getGoldSilverCopper(vehicle * 2)
+  , body: data.body === 0 ? "scrap" : getGoldSilverCopper(data.body)
+  , eng: data.engine === 0 ? "scrap" : getGoldSilverCopper(data.engine)
+  , trans: data.transmission === 0 ? "scrap" : getGoldSilverCopper(data.transmission)
+  , susp: data.suspension === 0 ? "scrap" : getGoldSilverCopper(data.suspension)
+  , chass: data.chassis === 0 ? "scrap" : getGoldSilverCopper(data.chassis)
+  };
+
+  return `
+  <h2>Vehicle Evaluation</h2>
+  <p><b>Total Resale:</b>&nbsp;${pathfinderMoneyed.total}</p>
+  <p><b>Body:</b>&nbsp;${pathfinderMoneyed.body}</p>
+  <p><b>Engine:</b>&nbsp;${pathfinderMoneyed.eng}</p>
+  <p><b>Transmission:</b>&nbsp;${pathfinderMoneyed.trans}</p>
+  <p><b>Suspension:</b>&nbsp;${pathfinderMoneyed.susp}</p>
+  <p><b>Chassis:</b>&nbsp;${pathfinderMoneyed.chass}</p>
+  `;
 }
 
 function decodeBodyData(html) {
@@ -37,7 +66,7 @@ function decodeBodyData(html) {
   } else if (hp > 100) {
     hp = 100;
   }
-  return hp === 0 ? 0 : hp * 0.01 * bodyStyles[style];
+  return hp === 0 ? 0 : (hp * 0.01 * bodyStyles[style]);
 }
 
 function decodeChassisData(html) {
@@ -95,7 +124,6 @@ function decodeEngineData(html) {
 }
 
 function decodeSuspensionData(html) {
-  const cost = [10, 20, 30, 50, 80, 130, 210, 340, 550, 890];
   const dependency = { "dependent": 1, "mixed": 1.5, "independent": 2 };
   const type = {
     "mechanical": 1
@@ -349,7 +377,7 @@ new Dialog({
       ChatMessage.create({
         user: game.user.id,
         speaker: speaker,
-        content: buildChatMessage(data, speaker)
+        content: buildChatMessage(data)
       }, {});
     }
   }
