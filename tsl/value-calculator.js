@@ -66,23 +66,38 @@ function buildChatMessage(data) {
 
 function decodeBodyData(html) {
   const bodyStyles = {
-    "barchetta": 575
+    "aerostat": 22500
+  , "barchetta": 575
+  , "barge": 8200
+  , "bigAxle": 1750
+  , "biplane": 2800
   , "buggy": 150
   , "bus": 850
+  , "catamaran": 2700
   , "coupe": 550
   , "dayCab": 1000
+  , "dinghy": 80
   , "doubleDecker": 8500
+  , "gyrocopter": 650
+  , "libellule": 725
+  , "megaplane": 32000
+  , "monoplane": 5500
   , "openWheel": 600
   , "phaeton": 900
   , "pickup": 400
   , "putterPony": 75
   , "quad": 100
   , "roadster": 450
+  , "runabout": 1200
   , "sedan": 425
+  , "skimmer": 300
   , "sleeperCab": 1250
   , "steamhorse": 120
+  , "tank": 10000
+  , "thunderboat": 10000
   , "van": 475
   , "wagon": 510
+  , "yacht": 6400
   };
   const style = html.find("select[name='body']").val();
   let hp = html.find("input[name='hp']").val();
@@ -249,29 +264,38 @@ function getDialogContent() {
     <div class="form-group">
       <label>Body Style</label>
       <select name="body">
-        <!-- <option value="aerostat">Aerostat</option> -->
+        <option value="aerostat">Aerostat</option>
         <option value="barchetta">Barchetta</option>
-        <!-- <option value="biplane">Biplane</option> -->
+        <option value="barge">Barge</option>
+        <option value="bigAxle">Big Axle</option>
+        <option value="biplane">Biplane</option>
         <option value="buggy">Buggy</option>
         <option value="bus">Bus</option>
+        <option value="catamaran">Catamaran</option>
         <option value="coupe">Coupé</option>
         <option value="dayCab">Day Cab Rig</option>
+        <option value="dinghy">Dinghy</option>
         <option value="doubleDecker">Double-Decker</option>
-        <!-- <option value="gyrocopter">Gyrocopter</option> -->
-        <!-- <option value="libellule">Libellule</option> -->
-        <!-- <option value="megaplane">Megaplane</option> -->
-        <!-- <option value="monoplane">Monoplane</option> -->
+        <option value="gyrocopter">Gyrocopter</option>
+        <option value="libellule">Libellule</option>
+        <option value="megaplane">Megaplane</option>
+        <option value="monoplane">Monoplane</option>
         <option value="openWheel">Open-Wheel</option>
         <option value="phaeton">Phaeton</option>
         <option value="pickup">Pickup</option>
         <option value="putterPony">Putter Pony</option>
         <option value="quad">Quad</option>
         <option value="roadster">Roadster</option>
+        <option value="runabout">Runabout</option>
         <option value="sedan">Sedan</option>
+        <option value="skimmer">Skimmer</option>
         <option value="sleeperCab">Sleeper Cab Rig</option>
         <option value="steamhorse">Steamhorse</option>
+        <option value="tank">Tank</option>
+        <option value="thunderboat">Thunderboat</option>
         <option value="van">Van</option>
         <option value="wagon">Wagon</option>
+        <option value="yacht">Yacht</option>
       </select>
     </div>
     <div class="form-group">
