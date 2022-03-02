@@ -10,16 +10,22 @@ async function getSalvageResults(rollTable) {
 async function getSalvageBody() {
   const classification = "Salvage Vehicle Classification";
   const body = await getSalvageResults(classification);
+  console.log(body);
 
-  const steamhorse = ["Motorsled", "Putter Pony", "Steamhorse", "Quad"];
+  const steamhorse = ["Putter Pony", "Steamhorse", "Quad"];
   const auto = [
-    "Barchetta", "Buggy", "Coupé", "Open-Wheel", "Phaeton", "Pickup",
-    "Roadster", "Sedan", "Van", "Wagon"
+    "Barchetta", "Big Axle", "Buggy", "Coupé", "Open-Wheel", "Phaeton",
+    "Pickup", "Roadster", "Sedan", "Van", "Wagon"
   ];
-  const heavy = ["Bus", "Day Cab Rig", "Sleeper Cab Rig"];
-  const steamhorseAr = ["Libellule", "Gyrocopter"];
-  const autoAr = ["Monoplane", "Biplane"];
-  const heavyAr = ["Aerostat", "Megaplane"];
+  const heavy = ["Bus", "Day Cab Rig", "Double-Decker", "Sleeper Cab Rig", "Tank"];
+
+  const steamhorseAir = ["Libellule", "Gyrocopter"];
+  const autoAir = ["Monoplane", "Biplane"];
+  const heavyAir = ["Aerostat", "Megaplane"];
+
+  const steamhorseAq = ["Dinghy", "Skimmer"];
+  const autoAq = ["Catamaran", "Runabout", "Thunderboat"];
+  const heavyAq = ["Barge", "Yacht"];
 
   let group = "";
   if (steamhorse.includes(body)) {
@@ -28,32 +34,62 @@ async function getSalvageBody() {
     group = "Ground Auto";
   } else if (heavy.includes(body)) {
     group = "Ground Heavy";
-  } else if (steamhorseAr.includes(body)) {
+  } else if (steamhorseAir.includes(body)) {
     group = "Aerial Steamhorse";
-  } else if (autoAr.includes(body)) {
+  } else if (autoAir.includes(body)) {
     group = "Aerial Auto";
-  } else if (heavyAr.includes(body)) {
+  } else if (heavyAir.includes(body)) {
     group = "Aerial Heavy";
+  } else if (steamhorseAq.includes(body)) {
+    group = "Aquatic Steamhorse"
+  } else if (autoAq.includes(body)) {
+    group = "Aquatic Auto"
+  } else if (heavyAq.includes(body)) {
+    group = "Heavy Steamhorse"
   }
 
   return `${body} (${group})`;
 }
 
 // Roll salvage vehicle parts table.
-async function getSalvageParts() {
+async function getSalvageParts(isAerial, isAquatic) {
   const parts = ["Engine", "Transmission", "Suspension", "Chassis"];
   let partsData = "";
   for (let i = 0; i < parts.length; i++) {
     const partData = await getSalvageResults(`Salvage ${parts[i]}`);
     const consume = partData.split("::").map(x => x.trim());
-    const row =
-    `<tr>
-      <td>${parts[i]}</td>
-      <td>${consume[0]}</td>
-      <td>${consume[1]}</td>
-      <td>${await getSalvageResults("Part Integrity")}</td>
-    </tr>`;
-    partsData += row;
+    if ((isAerial || isAquatic) && parts[i] === "Suspension") {
+      partsData +=
+        `<tr>
+          <td>${parts[i]}</td>
+          <td>Independent ${consume[0].split(" ").pop()}</td>
+          <td>${consume[1]}</td>
+          <td>${await getSalvageResults("Part Integrity")}</td>
+        </tr>`;
+    } else if (isAerial && parts[i] === "Chassis") {
+      partsData +=
+        `<tr>
+          <td>${parts[i]}</td>
+          <td>AWD Prop</td>
+          <td>Br [[d10]]</td>
+          <td>${await getSalvageResults("Part Integrity")}</td>
+        </tr>`;
+    } else if (isAquatic && parts[i] === "Chassis") {
+      partsData += `<tr><td>Chassis</td><td colspan="3">None</td></tr>`;
+    } else {
+      const partType =
+           parts[i] === "Chassis"
+        && (consume[0].includes("Tracks") || consume[0].includes("Screw"))
+          ? `AWD ${consume[0].split(" ").pop()}`
+          : consume[0];
+      partsData +=
+        `<tr>
+          <td>${parts[i]}</td>
+          <td>${partType}</td>
+          <td>${consume[1]}</td>
+          <td>${await getSalvageResults("Part Integrity")}</td>
+        </tr>`;
+    }
   }
   let html =
   `<table style="text-align:center">
@@ -75,11 +111,14 @@ async function getSalvageParts() {
 // Construct HTML message table for chat message.
 const hpRoll = await new Roll("d100").roll({async: true});
 async function buildMessageTable() {
+  const bodyResults = await getSalvageBody();
+  const isAerial = bodyResults.includes("Aerial");
+  const isAquatic = bodyResults.includes("Aquatic");
   let messageTable =
     `<b><h2>Salvage Vehicle</h2></b>
-    <p><b>Vehicle:</b> ${await getSalvageBody()}</p>
+    <p><b>Vehicle:</b> ${bodyResults}</p>
     <p><b>Hit Points:</b> ${hpRoll.total}%</p>
-    ${await getSalvageParts()}`;
+    ${await getSalvageParts(isAerial, isAquatic)}`;
   return messageTable;
 }
 
