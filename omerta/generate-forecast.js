@@ -1,34 +1,33 @@
 function buildChatMessage(data) {
-    const center = "text-align:center;";
-    const grid = "display:grid;";
-    const bold = "font-weight:700;";
-    const citySpan = `<span style="display:block">${data.city.toUpperCase()}</span>`;
-    const boxes = "grid-template-columns:repeat(2,1fr);";
-    console.log(data.sky_conditions);
-    const conditions = getConditions(data.sky_conditions);
-    return `
-      <div style="${[ center, grid ].join(" ")}">
-        <h2>${citySpan}WEATHER FORECAST</h2>
-        <h3>${data.date}</h3>
-        <div style="${[ grid, boxes ].join(" ")}">
-          <div>
-            <h4 style="${bold}">Temperature</h4>
-            <h3 style="font-size:3em">${data.temperature}&deg;</h3>
-            ${displayLinkOrText(getHeat(data.temperature))}
-          </div>
-          <div>
-            <h4 style="${bold}">Conditions</h4>
-            <h3 style="font-size:3em"><i class="fas fa-${conditions.icon}"></i></h3>
-            ${displayLinkOrText(conditions)}
-          </div>
+  const center = "text-align:center;";
+  const grid = "display:grid;";
+  const bold = "font-weight:700;";
+  const citySpan = `<span style="display:block">${data.city.toUpperCase()}</span>`;
+  const boxes = "grid-template-columns:repeat(2,1fr);";
+  const conditions = getConditions(data.sky_conditions);
+  return `
+    <div style="${[ center, grid ].join(" ")}">
+      <h2>${citySpan}WEATHER FORECAST</h2>
+      <h3>${data.date}</h3>
+      <div style="${[ grid, boxes ].join(" ")}">
+        <div>
+          <h4 style="${bold}">Temperature</h4>
+          <h3 style="font-size:3em">${data.temperature}&deg;</h3>
+          ${displayLinkOrText(getHeat(data.temperature))}
+        </div>
+        <div>
+          <h4 style="${bold}">Conditions</h4>
+          <h3 style="font-size:3em"><i class="fas fa-${conditions.icon}"></i></h3>
+          ${displayLinkOrText(conditions)}
         </div>
       </div>
-    `;
+    </div>
+  `;
 }
 
 function displayLinkOrText(data) {
-  const attrs = `style="color:black" href="${data.link}"`;
-  const a = `<a ${attrs}><i class="fas fa-book"></i>&nbsp;${data.text}</a>`;
+  const attrs = 'class="compendium-entry"';
+  const a = `<a $${attrs}}>@Compendium[${data.rules}]{${data.text}}</a>`;
   const html = data.rules ? a : data.text;
   return `<div style="height:20px">${html}</div>`;
 }
@@ -38,97 +37,96 @@ function getDataFromHtml(html) {
     const realCity = getRealCity(settingCity);
 
     if (typeof(realCity) === undefined) {
-        return 'invalid'
+      return 'invalid'
     } else {
-        return {
-            "day": html.find("input[name='day']").val(),
-            "month": html.find("select[name='month']").val(),
-            "year": html.find("input[name='year']").val(),
-            "settingCity": settingCity,
-            "realCity": realCity
-        }
+      return {
+        "day": html.find("input[name='day']").val(),
+        "month": html.find("select[name='month']").val(),
+        "year": html.find("input[name='year']").val(),
+        "settingCity": settingCity,
+        "realCity": realCity
+      }
     }
 }
 
 function getConditions(conditions) {
-  // TODO: Attach the actual rules links to these.
   const condResults = {
     "sunny": { "icon": "sun", "text": titleCase(conditions) },
     "partly cloudy": { "icon": "cloud-sun", "text": titleCase(conditions) },
     "overcast": {
-      "rules": "TODO", // Overcast conditions grant concealment for creatures flying at high altitude.
+      "rules": "world.haarpist.zzw5vUHAOsl7nG8K",
       "icon": "cloud",
       "text": titleCase(conditions)
     },
     "light rain": {
-      "rules": "TODO", // Rules for drizzle.
+      "rules": "world.haarpist.325AyEidjIzgWis3",
       "icon": "cloud-sun-rain",
       "text": titleCase(conditions)
     },
     "moderate rain": {
-      "rules": "TODO", // Rules for overcast and rain.
+      "rules": "world.haarpist.325AyEidjIzgWis3",
       "icon": "cloud-rain",
       "text": titleCase(conditions)
     },
     "heavy rain": {
-      "rules": "TODO", // Rules for overcast and heavy rain.
+      "rules": "world.haarpist.325AyEidjIzgWis3",
       "icon": "cloud-showers-heavy",
       "text": titleCase(conditions)
     },
     "violent rain": {
-      "rules": "TODO", // Thunderstorm.
+      "rules": "world.haarpist.325AyEidjIzgWis3",
       "icon": "bolt",
-      "text": titleCase(conditions)
+      "text": `${getRandomWinds()} Thunderstorm`
     },
     "light snow": {
-      "rules": "TODO", // Rules for light snow.
+      "rules": "world.haarpist.kfJ2EJQG4zXSFf8O",
       "icon": "snowflake",
       "text": titleCase(conditions)
     },
     "moderate snow": {
-      "rules": "TODO", // Rules for overcast and medium snow.
+      "rules": "world.haarpist.kfJ2EJQG4zXSFf8O",
       "icon": "snowflake",
       "text": titleCase(conditions)
     },
     "heavy snow": {
-      "rules": "TODO", // Rules for overcast heavy snow.
+      "rules": "world.haarpist.kfJ2EJQG4zXSFf8O",
       "icon": "snowflake",
       "text": titleCase(conditions)
     },
     "violent snow": {
-      "rules": "TODO", // Blizzard.
+      "rules": "world.haarpist.kfJ2EJQG4zXSFf8O",
       "icon": "snowflake",
-      "text": titleCase(conditions)
+      "text": `${getRandomWinds()} Blizzard`
     },
     "light fog": {
-      "rules": "TODO", // Light fog.
+      "rules": "world.haarpist.NHVPGoUfb3M35Wr3",
       "icon": "smog",
       "text": titleCase(conditions)
     },
     "medium fog": {
-      "rules": "TODO", // Medium fog.
+      "rules": "world.haarpist.NHVPGoUfb3M35Wr3",
       "icon": "smog",
       "text": titleCase(conditions)
     },
     "heavy fog": {
-      "rules": "TODO", // Heavy fog.
+      "rules": "world.haarpist.NHVPGoUfb3M35Wr3",
       "icon": "smog",
       "text": titleCase(conditions)
     },
     "breezy": { "icon": "wind", "text": titleCase(conditions) },
     "windy": { "icon": "wind", "text": titleCase(conditions) },
     "strong winds": {
-      "rules": "TODO", // Strong winds.
+      "rules": "world.haarpist.ySJN88OSry9MmJPM",
       "icon": "wind",
       "text": titleCase(conditions)
     },
     "severe winds": {
-      "rules": "TODO", // Severe winds.
+      "rules": "world.haarpist.ySJN88OSry9MmJPM",
       "icon": "wind",
       "text": titleCase(conditions)
     },
     "windstorm": {
-      "rules": "TODO", // Windstorm.
+      "rules": "world.haarpist.ySJN88OSry9MmJPM",
       "icon": "wind",
       "text": titleCase(conditions)
     },
@@ -184,44 +182,69 @@ async function getForecast(data) {
 }
 
 function getHeat(temperature) {
-  // TODO: Attach the actual rules links to these.
+  const coldRules = "pf-content.pf-rules.pXwhr9IdI6o8aqm5";
+  const heatRules = "pf-content.pf-rules.d5jA5Uo7F7mpbfZE";
   if (temperature > 140) {
-    return { "rules": "TODO", "text": "Extreme Heat" };
+    return { "rules": heatRules, "text": "Extreme Heat" };
   } else if (temperature > 110) {
-    return { "rules": "TODO", "text": "Severe Heat" };
+    return { "rules": heatRules, "text": "Severe Heat" };
   } else if (temperature > 90) {
-    return { "rules": "TODO", "text": "Very Hot" };
+    return { "rules": heatRules, "text": "Very Hot" };
   } else if (temperature < 40) {
-    return { "rules": "TODO", "text": "Cold" };
+    return { "rules": coldRules, "text": "Cold" };
   } else if (temperature < 0) {
-    return { "rules": "TODO", "text": "Severe Cold" };
+    return { "rules": coldRules, "text": "Severe Cold" };
   } else if (temperature < -20) {
-    return { "rules": "TODO", "text": "Extreme Cold" };
+    return { "rules": coldRules, "text": "Extreme Cold" };
   } else {
     return { "text": "Comfortable" };
   }
 }
 
-function getRealCity(city) {
-    const realCities = {
-        "arrowbrook": "chicago",
-        "ataraxia": "new-york",
-    };
-    return realCities[city];
+function getRandomWinds() {
+  const plusWinds = [ 'Strong', 'Severe', 'Violent' ];
+  return plusWinds[Math.random() * plusWinds.length | 0];
 }
 
+function getRealCity(city) {
+  const realCities = {
+    "arrowbrook": "chicago",
+    "ataraxia": "new-york",
+  };
+  return realCities[city];
+}
 
-async function makeForecast(options) {
-    const forecast = await getForecast(options);
-    if (typeof(forecast) === "undefined") {
-        return;
-    }
+function handleCreateOrUpdateNote(html, data) {
+  // TODO: Check if a note exists for the same city on the forecast date.
+  // If yes, create a dialog window asking if the user wants to overwrite.
+    // If overwrite:
+      // Create ui.notifications.warning saying the note was overwritten.
+      // Delete the existing note and create a new note.
+    // If no overwite:
+      // return "Forecast already exists for that day - overwrite aborted."
+  // If no:
+    // Create new note using the provided html template (or a table if that fails).
+  // IMPORTANT: All notes should have a title of `${data.city.toUpper()} WEATHER FORECAST`
+  return "success";
+}
 
+async function handleForecastCreate(options) {
+  const forecast = await getForecast(options);
+  if (typeof(forecast) === "undefined") {
+    return;
+  }
+
+  const html = buildChatMessage(forecast);
+  const noteStatus = handleCreateOrUpdateNote(html, forecast);
+  if (noteStatus === "success") {
     ChatMessage.create({
-        user: game.user.id,
-        speaker: ChatMessage.getSpeaker(),
-        content: buildChatMessage(forecast)
+      user: game.user.id,
+      speaker: ChatMessage.getSpeaker(),
+      content: buildChatMessage(forecast)
     }, {});
+  } else {
+    ui.notifications.warning(noteStatus);
+  }
 }
 
 function makeMonthOptions(currentMonth) {
@@ -243,10 +266,10 @@ function titleCase(str) {
 }
 
 function getDialogContent() {
-    const day = SimpleCalendar.api.getCurrentDay().numericRepresentation;
-    const month = SimpleCalendar.api.getCurrentMonth().numericRepresentation;
-    const year = SimpleCalendar.api.getCurrentYear().numericRepresentation;
-    return `
+  const day = SimpleCalendar.api.getCurrentDay().numericRepresentation;
+  const month = SimpleCalendar.api.getCurrentMonth().numericRepresentation;
+  const year = SimpleCalendar.api.getCurrentYear().numericRepresentation;
+  return `
     <form>
       <div class="form-group">
         <label>City</label>
@@ -270,28 +293,28 @@ function getDialogContent() {
         <input type="number" name="year" value="${year}"/>
       </div>
     </form>
-    `;
+  `;
 }
 
 async function createDialog() {
   return new Dialog({
-      title: "Generate Forecast",
-      content: getDialogContent(),
-      buttons:{
-          yes: {
-              icon: "<i class='fas fa-check'></i>",
-              label: "Generate"
-          }
-      },
-      default: "yes",
-      close: html => {
-          const options = getDataFromHtml(html);
-          if (options === "invalid") {
-              ui.notifications.error("Some of the inputs provided are invalid.");
-          } else {
-              makeForecast(options);
-          }
+    title: "Generate Forecast",
+    content: getDialogContent(),
+    buttons:{
+      yes: {
+        icon: "<i class='fas fa-check'></i>",
+        label: "Generate"
       }
+    },
+    default: "yes",
+    close: html => {
+      const options = getDataFromHtml(html);
+      if (options === "invalid") {
+        ui.notifications.error("Some of the inputs provided are invalid.");
+      } else {
+        handleForecastCreate(options);
+      }
+    }
   }).render(true);
 }
 
