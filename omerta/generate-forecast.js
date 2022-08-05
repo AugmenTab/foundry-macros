@@ -1,14 +1,15 @@
-function buildChatMessage(data) {
+function buildForecastContent(data) {
   const center = "text-align:center;";
   const grid = "display:grid;";
   const bold = "font-weight:700;";
-  const citySpan = `<span style="display:block">${data.city.toUpperCase()}</span>`;
+  const city = data.settingCity.toUpperCase();
+  const citySpan = `<span style="display:block">${city}</span>`;
   const boxes = "grid-template-columns:repeat(2,1fr);";
   const conditions = getConditions(data.sky_conditions);
   return `
     <div style="${[ center, grid ].join(" ")}">
       <h2>${citySpan}WEATHER FORECAST</h2>
-      <h3>${data.date}</h3>
+      <h3>${data.dateStr}</h3>
       <div style="${[ grid, boxes ].join(" ")}">
         <div>
           <h4 style="${bold}">Temperature</h4>
@@ -32,21 +33,14 @@ function displayLinkOrText(data) {
   return `<div style="height:20px">${html}</div>`;
 }
 
-function getDataFromHtml(html) {
-    const settingCity = html.find("select[name='city']").val();
-    const realCity = getRealCity(settingCity);
-
-    if (typeof(realCity) === undefined) {
-      return 'invalid'
-    } else {
-      return {
-        "day": html.find("input[name='day']").val(),
-        "month": html.find("select[name='month']").val(),
-        "year": html.find("input[name='year']").val(),
-        "settingCity": settingCity,
-        "realCity": realCity
-      }
-    }
+function existingNotesForRequestedDate(options) {
+  const city = options.settingCity.toLowerCase();
+  const noteDate = makeNoteDate(options);
+  const notes =
+    SimpleCalendar.api
+                  .getNotesForDay(noteDate.year, noteDate.month, noteDate.day)
+                  .filter(x => x.name.toLowerCase().includes(city));
+  return notes[0];
 }
 
 function getConditions(conditions) {
@@ -134,43 +128,60 @@ function getConditions(conditions) {
   return condResults[conditions];
 }
 
-async function getForecast(data) {
-  const reqDay = parseFloat(data.day);
-  const reqMonth = parseFloat(data.month);
-  const reqYear = parseFloat(data.year);
-  const currentDay = SimpleCalendar.api.getCurrentDay().numericRepresentation;
-  const currentMonth = SimpleCalendar.api.getCurrentMonth().numericRepresentation;
-  const currentYear = SimpleCalendar.api.getCurrentYear().numericRepresentation;
-  const sameDay = (
-    reqDay === currentDay && reqMonth === currentMonth && reqYear === currentYear
-  );
+function getDataFromHtml(html) {
+  const settingCity = html.find("select[name='city']").val();
+  const realCity = getRealCity(settingCity);
 
-  let weekday;
-  let queryDate = {
-    year: reqYear,
-    month: reqMonth - 1,
-    day: reqDay - 1,
-    hour: 1,
-    minute: 1,
-    second: 0
-  }
-
-  if (sameDay) {
-    weekday = SimpleCalendar.api.getCurrentWeekday().name;
+  if (typeof(realCity) === undefined) {
+    return 'invalid'
   } else {
-    const timestamp = SimpleCalendar.api.dateToTimestamp(queryDate);
-    const date = SimpleCalendar.api.timestampToDate(timestamp);
-    weekday = date.weekdays[date.dayOfTheWeek];
+    return {
+      "day": html.find("input[name='day']").val(),
+      "month": html.find("select[name='month']").val(),
+      "year": html.find("input[name='year']").val(),
+      "settingCity": settingCity,
+      "realCity": realCity
+    }
   }
+}
 
+function getDialogContent(date) {
+  return `
+    <form>
+      <div class="form-group">
+        <label>City</label>
+        <select style="text-align:center" name="city">
+          <option value="Arrowbrook">Arrowbrook</option>
+          <option value="Ataraxia">Ataraxia</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Day</label>
+        <input type="number" name="day" value="${date.day}"/>
+      </div>
+      <div class="form-group">
+        <label>Month</label>
+        <select style="text-align:center" name="month">
+          ${makeMonthOptions(date.month)}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Year</label>
+        <input type="number" name="year" value="${date.year}"/>
+      </div>
+    </form>
+  `;
+}
+
+async function getForecast(options) {
   const url = "https://0mn5swiv1g.execute-api.us-east-2.amazonaws.com"
             + "/Prod/forecast"
-            + `?weekday=${weekday}`
-            + `&day=${data.day}`
-            + `&month=${data.month}`
-            + `&year=${data.year}`
-            + `&settingCity=${data.settingCity}`
-            + `&realCity=${data.realCity}`;
+            + `?weekday=${options.weekday}`
+            + `&day=${options.day}`
+            + `&month=${options.month}`
+            + `&year=${options.year}`
+            + `&settingCity=${options.settingCity}`
+            + `&realCity=${options.realCity}`;
   const results = await fetch(url);
   const body = await results.json();
   if (results.status === 200) {
@@ -208,52 +219,70 @@ function getRandomWinds() {
 
 function getRealCity(city) {
   const realCities = {
-    "arrowbrook": "chicago",
-    "ataraxia": "new-york",
+    "Arrowbrook": "chicago",
+    "Ataraxia": "new-york",
   };
   return realCities[city];
 }
 
-function handleAskForOverwrite(html, forecast, date, existingNoteId) {
-  const content = `
-    <p>${forecast.city} on ${forecast.date} already has a forecast. Would you like to overwrite it?</p>
-  `;
-
-  new Promise(() => {
-    new Dialog({
-      title: "Forecast Conflict",
-      content: content,
-      buttons:{
-        yes: {
-          icon: "<i class='fas fa-check'></i>",
-          label: "Overwrite",
-          callback: () => {
-            SimpleCalendar.api.removeNote(existingNoteId);
-            handleCreateCalendarForecastNote(html, forecast, date);
-            ui.notifications.warn(
-              `Forecast for ${forecast.city} on ${forecast.date} overwritten.`
-            );
-          }
-        },
-        no: {
-          icon: "<i class='fas fa-times'></i>",
-          label: "Abort",
-          callback: () => {
-            ui.notifications.notify(
-              `Forecast already exists for ${forecast.city} on ${forecast.date} - overwrite aborted.`
-            );
-          }
-        }
-      },
-      default: "no",
-      close: async () => {}
-    }).render(true);
-  });
+function getWeekday(date, options) {
+  let weekday;
+  if (    options.day === date.day
+       && options.month === date.month
+       && options.year === date.year
+     ) {
+    weekday = SimpleCalendar.api.getCurrentWeekday().name;
+  } else {
+    const noteDate = makeNoteDate(options);
+    const timestamp = SimpleCalendar.api.dateToTimestamp(noteDate);
+    const date = SimpleCalendar.api.timestampToDate(timestamp);
+    weekday = date.weekdays[date.dayOfTheWeek];
+  }
+  return weekday;
 }
 
-function handleCreateCalendarForecastNote(html, forecast, date) {
+function handleAskForOverwrite(options, existingNote) {
+  const content = `
+    <p>${options.settingCity} on ${options.dateStr} already has a forecast.</p>
+    <p>Would you like to overwrite it?</p>
+  `;
+
+  new Dialog({
+    title: "Forecast Conflict",
+    content: content,
+    buttons:{
+      yes: {
+        icon: "<i class='fas fa-check'></i>",
+        label: "Overwrite",
+        callback: async () => {
+          SimpleCalendar.api.removeNote(existingNote.id);
+          await handleForecastCreate(options);
+          ui.notifications.warn(
+              `Forecast for ${options.settingCity} on `
+            + `${options.dateStr} has been overwritten.`
+          );
+        }
+      },
+      no: {
+        icon: "<i class='fas fa-times'></i>",
+        label: "Abort",
+        callback: () => {
+          handleCreateChatMessage(existingNote.data.content);
+          ui.notifications.notify(
+              `Forecast already exists for ${options.settingCity} on `
+            + `${options.dateStr} - reprinting today's forecast.`
+          );
+        }
+      }
+    },
+    default: "no",
+    close: () => {}
+  }).render(true);
+}
+
+function handleCreateCalendarForecastNote(html, city, date) {
   SimpleCalendar.api.addNote(
-    `${forecast.city} Weather Forecast`, // title
+    `${city} Weather Forecast`, // title
     html, // content
     date, // startDate
     date, // endDate
@@ -263,43 +292,25 @@ function handleCreateCalendarForecastNote(html, forecast, date) {
   );
 }
 
-async function handleCreateOrUpdateNote(html, forecast, data) {
-  const reqDay = parseFloat(data.day) - 1;
-  const reqMonth = parseFloat(data.month) - 1;
-  const date = {
-    year: parseFloat(data.year) - (reqDay && reqMonth ? 0 : 1),
-    month: reqMonth,
-    day: reqDay,
-    hour: 1,
-    minute: 1,
-    seconds: 1
-  };
-
-  const notes =
-    SimpleCalendar.api
-                  .getNotesForDay(date.year, date.month, date.day)
-                  .filter(x => x.name.toLowerCase().includes(forecast.city.toLowerCase()));
-
-  if (notes.length > 0) {
-    handleAskForOverwrite(html, forecast, date, notes[0].id);
-    return null;
-  } else {
-    handleCreateCalendarForecastNote(html, forecast, date);
-    return html;
-  }
+function handleCreateChatMessage(html) {
+  ChatMessage.create({
+    user: game.user.id,
+    speaker: ChatMessage.getSpeaker(),
+    content: html
+  });
 }
 
 async function handleForecastCreate(options) {
   const forecast = await getForecast(options);
-  const chat = buildChatMessage(forecast);
-  const html = await handleCreateOrUpdateNote(chat, forecast, options);
-  if (typeof(forecast) !== "undefined" && html) {
-    ChatMessage.create({
-      user: game.user.id,
-      speaker: ChatMessage.getSpeaker(),
-      content: html
-    }, {});
-  }
+  // TODO: Merge the two objects together once the API has been modified.
+  options.temperature = forecast.temperature;
+  options.sky_conditions = forecast.sky_conditions;
+  options.precipitation = forecast.precipitation;
+
+  const html = buildForecastContent(options);
+  const noteDate = makeNoteDate(options);
+  handleCreateCalendarForecastNote(html, options.settingCity, noteDate);
+  handleCreateChatMessage(html);
 }
 
 function makeMonthOptions(currentMonth) {
@@ -314,62 +325,65 @@ function makeMonthOptions(currentMonth) {
   return html;
 }
 
+function makeNoteDate(options) {
+  const adjDay = options.day - 1;
+  const adjMonth = options.month - 1;
+  return {
+    year: options.year - (adjDay && adjMonth ? 0 : 1),
+    month: adjMonth,
+    day: adjDay,
+    hour: 1,
+    minute: 1,
+    second: 1
+  }
+}
+
 function titleCase(str) {
   return str.replace(/\w\S*/g, function(txt) {
     return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
   });
 }
 
-function getDialogContent() {
-  const day = SimpleCalendar.api.getCurrentDay().numericRepresentation;
-  const month = SimpleCalendar.api.getCurrentMonth().numericRepresentation;
-  const year = SimpleCalendar.api.getCurrentYear().numericRepresentation;
-  return `
-    <form>
-      <div class="form-group">
-        <label>City</label>
-        <select style="text-align:center" name="city">
-          <option value="arrowbrook">Arrowbrook</option>
-          <option value="ataraxia">Ataraxia</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Day</label>
-        <input type="number" name="day" value="${day}"/>
-      </div>
-      <div class="form-group">
-        <label>Month</label>
-        <select style="text-align:center" name="month">
-          ${makeMonthOptions(month)}
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Year</label>
-        <input type="number" name="year" value="${year}"/>
-      </div>
-    </form>
-  `;
-}
-
 async function createDialog() {
+  const date = {
+    day: SimpleCalendar.api.getCurrentDay().numericRepresentation,
+    month: SimpleCalendar.api.getCurrentMonth().numericRepresentation,
+    year: SimpleCalendar.api.getCurrentYear().numericRepresentation
+  };
+
   new Dialog({
     title: "Generate Forecast",
-    content: getDialogContent(),
+    content: getDialogContent(date),
     buttons:{
       yes: {
         icon: "<i class='fas fa-check'></i>",
-        label: "Generate"
+        label: "Generate",
+        callback: async html => {
+          const options = getDataFromHtml(html);
+          if (options === "invalid") {
+            ui.notifications.error("Some of the inputs provided are invalid.");
+          } else {
+            options.day = parseFloat(options.day);
+            options.month = parseFloat(options.month);
+            options.year = parseFloat(options.year);
+            options.weekday = getWeekday(date, options);
+
+            const month =
+              SimpleCalendar.api.getAllMonths()[options.month - 1].name;
+            options.dateStr =
+              `${options.weekday}, ${options.day} ${month}, ${options.year} YA`;
+
+            const existingNote = existingNotesForRequestedDate(options);
+            if (existingNote) {
+              handleAskForOverwrite(options, existingNote);
+            } else {
+              handleForecastCreate(options);
+            }
+          }
+        }
       }
     },
-    default: "yes",
-    close: html => {
-      const options = getDataFromHtml(html);
-      if (options === "invalid") {
-        ui.notifications.error("Some of the inputs provided are invalid.");
-      } else {
-        handleForecastCreate(options);
-      }
-    }
+    close: () => {}
   }).render(true);
 }
 
