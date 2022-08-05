@@ -214,36 +214,91 @@ function getRealCity(city) {
   return realCities[city];
 }
 
-function handleCreateOrUpdateNote(html, data) {
-  // TODO: Check if a note exists for the same city on the forecast date.
-  // If yes, create a dialog window asking if the user wants to overwrite.
-    // If overwrite:
-      // Create ui.notifications.warning saying the note was overwritten.
-      // Delete the existing note and create a new note.
-    // If no overwite:
-      // return "Forecast already exists for that day - overwrite aborted."
-  // If no:
-    // Create new note using the provided html template (or a table if that fails).
-  // IMPORTANT: All notes should have a title of `${data.city.toUpper()} WEATHER FORECAST`
-  return "success";
+function handleAskForOverwrite(html, forecast, date, existingNoteId) {
+  const content = `
+    <p>${forecast.city} on ${forecast.date} already has a forecast. Would you like to overwrite it?</p>
+  `;
+
+  new Promise(() => {
+    new Dialog({
+      title: "Forecast Conflict",
+      content: content,
+      buttons:{
+        yes: {
+          icon: "<i class='fas fa-check'></i>",
+          label: "Overwrite",
+          callback: () => {
+            SimpleCalendar.api.removeNote(existingNoteId);
+            handleCreateCalendarForecastNote(html, forecast, date);
+            ui.notifications.warn(
+              `Forecast for ${forecast.city} on ${forecast.date} overwritten.`
+            );
+          }
+        },
+        no: {
+          icon: "<i class='fas fa-times'></i>",
+          label: "Abort",
+          callback: () => {
+            ui.notifications.notify(
+              `Forecast already exists for ${forecast.city} on ${forecast.date} - overwrite aborted.`
+            );
+          }
+        }
+      },
+      default: "no",
+      close: async () => {}
+    }).render(true);
+  });
+}
+
+function handleCreateCalendarForecastNote(html, forecast, date) {
+  SimpleCalendar.api.addNote(
+    `${forecast.city} Weather Forecast`, // title
+    html, // content
+    date, // startDate
+    date, // endDate
+    true, // allDay
+    SimpleCalendar.api.NoteRepeat.Never, // repeats
+    [ 'Forecast' ] // categories
+  );
+}
+
+async function handleCreateOrUpdateNote(html, forecast, data) {
+  const reqDay = parseFloat(data.day) - 1;
+  const reqMonth = parseFloat(data.month) - 1;
+  const date = {
+    year: parseFloat(data.year) - (reqDay && reqMonth ? 0 : 1),
+    month: reqMonth,
+    day: reqDay,
+    hour: 1,
+    minute: 1,
+    seconds: 1
+  };
+
+  const notes =
+    SimpleCalendar.api
+                  .getNotesForDay(date.year, date.month, date.day)
+                  .filter(x => x.name.toLowerCase().includes(forecast.city.toLowerCase()));
+
+  if (notes.length > 0) {
+    handleAskForOverwrite(html, forecast, date, notes[0].id);
+    return null;
+  } else {
+    handleCreateCalendarForecastNote(html, forecast, date);
+    return html;
+  }
 }
 
 async function handleForecastCreate(options) {
   const forecast = await getForecast(options);
-  if (typeof(forecast) === "undefined") {
-    return;
-  }
-
-  const html = buildChatMessage(forecast);
-  const noteStatus = handleCreateOrUpdateNote(html, forecast);
-  if (noteStatus === "success") {
+  const chat = buildChatMessage(forecast);
+  const html = await handleCreateOrUpdateNote(chat, forecast, options);
+  if (typeof(forecast) !== "undefined" && html) {
     ChatMessage.create({
       user: game.user.id,
       speaker: ChatMessage.getSpeaker(),
-      content: buildChatMessage(forecast)
+      content: html
     }, {});
-  } else {
-    ui.notifications.warning(noteStatus);
   }
 }
 
@@ -297,7 +352,7 @@ function getDialogContent() {
 }
 
 async function createDialog() {
-  return new Dialog({
+  new Dialog({
     title: "Generate Forecast",
     content: getDialogContent(),
     buttons:{
